@@ -4,7 +4,7 @@ Welcome to the data download section. Below, you'll find links to download the d
 
 ## Datasets
 
-1. [Dataset ](https://www.kaggle.com/datasets/nikdavis/steam-store-games)
+1. [Dataset](https://www.kaggle.com/datasets/nikdavis/steam-store-games)
    - Description: This dataset contains [Steam Games Data Set].
 
 
