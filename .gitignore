@@ -4,3 +4,7 @@ data/
 .vscode/*
 __pycache__/
 __pycache__/*
+
+inverted_index.json
+preprocessed_data_all_columns.json
+tfidf_results.txt
