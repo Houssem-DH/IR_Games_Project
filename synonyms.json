@@ -4,6 +4,7 @@
         "strategy": ["RTS", "real-time strategy"],
         "gta": ["grand theft auto", "grand"],
         "غراند": ["grand theft auto", "grand", "gta"],
+        "grand": ["grand theft auto", "grand", "gta"],
         "cs": ["counter strike"],
         "csgo": ["counter strike global offensive"],
         "rl": ["rocket league"]

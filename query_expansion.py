@@ -12,24 +12,20 @@ def expand_query_based_on_country(tfidf_query, user_country):
     return tfidf_query
 
 
-def expand_query_based_on_synonyms(tfidf_query, synonyms_file='synonyms.json'):
+def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json'):
     try:
         with open(synonyms_file, 'r') as f:
             synonyms_data = json.load(f)
             synonyms = synonyms_data.get('synonyms', {})
     except FileNotFoundError:
         print("Synonyms file not found.")
-        return tfidf_query
+        return ' '.join(query_tokens)
 
-    expanded_query_terms = {}
-    for term in tfidf_query.keys():
-        expanded_query_terms[term] = tfidf_query[term]
-
+    expanded_query_terms = set(query_tokens)
+    for term in query_tokens:
         if term in synonyms:
-            for synonym in synonyms[term]:
-                expanded_query_terms[synonym] = tfidf_query[term]
+            expanded_query_terms.update(synonyms[term])
 
-    return expanded_query_terms
-
+    return ' '.join(expanded_query_terms)
 
 
