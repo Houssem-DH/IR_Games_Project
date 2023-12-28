@@ -27,6 +27,11 @@ def build_inverted_index_tfidf(data):
             tfidf = tf * idf
             inverted_index[term]['tfidf'][doc_id] = tfidf
 
+    # Scale the TF-IDF scores for the 'name' column
+    scale_factor = 1000000.0  # Adjust the scale factor as needed
+    for doc_id, tfidf_score in inverted_index['name_tokens']['tfidf'].items():
+        inverted_index['name_tokens']['tfidf'][doc_id] *= scale_factor
+
     return inverted_index
 
 def save_inverted_index(inverted_index, filename='inverted_index.json'):

@@ -7,6 +7,8 @@
         "grand": ["grand theft auto", "grand", "gta"],
         "cs": ["counter strike"],
         "csgo": ["counter strike global offensive"],
-        "rl": ["rocket league"]
+        "rl": ["rocket league"],
+        "rs": ["rainbow six"],
+        "rss": ["rainbow six siege"]
     }
 }

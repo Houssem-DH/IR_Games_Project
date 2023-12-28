@@ -9,11 +9,17 @@ def calculate_tfidf_for_queries(queries, inverted_index):
     for query_number, query_text in queries:
         tokens = preprocess_text(query_text, True, True)
         tfidf_query = defaultdict(lambda: 0)
+        name_weight= 10.0
         for term in tokens:
             if term in inverted_index:
                 tf = tokens.count(term) / len(tokens)
                 idf = math.log(len(inverted_index) / inverted_index[term]['document_frequency'] + 1)
-                tfidf_query[term] = tf * idf
+                # Adjust the TF-IDF score for the 'name' column
+                if 'name_tokens' in inverted_index[term]['tfidf']:
+                    tfidf_query[term] = tf * idf * name_weight
+                else:
+                    tfidf_query[term] = tf * idf
+                
         tfidf_queries[query_number] = tfidf_query
     return tfidf_queries
 

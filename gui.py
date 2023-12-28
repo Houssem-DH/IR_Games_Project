@@ -20,7 +20,7 @@ def handle_query(inverted_index, user_history):
         print(f"User IP: {user_ip}, User Country: {user_country}")
 
         # Expand query based on manual synonyms
-        expanded_query = expand_query_based_on_synonyms(preprocess_text(query_text, True, True))
+        expanded_query = expand_query_based_on_synonyms(preprocess_text(query_text))
        
 
         # Calculate TF-IDF for the query
