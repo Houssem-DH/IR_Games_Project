@@ -87,11 +87,13 @@ class InformationRetrievalApp:
             user_ip, user_country = get_user_geo()
             print(f"User IP: {user_ip}, User Country: {user_country}")
 
-            expanded_query_spacy = expand_query_based_on_spacy(query_text)
-            expanded_query_synonyms = expand_query_based_on_synonyms(preprocess_text(expanded_query_spacy, True, True))
+            expanded_query_synonyms = expand_query_based_on_synonyms(preprocess_text(query_text, False, False))
             expanded_query_translation = expand_query_based_on_translation(expanded_query_synonyms)
+            
+            
+            
 
-            expanded_query = f"{expanded_query_spacy} {expanded_query_synonyms} {expanded_query_translation}"
+            expanded_query = f"{expanded_query_synonyms} {expanded_query_translation}"
 
             tfidf_queries = calculate_tfidf_for_queries([(1, expanded_query)], self.inverted_index)
             tfidf_query = tfidf_queries[1]

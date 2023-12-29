@@ -47,21 +47,26 @@ def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', 
     expanded_query_terms = list(' '.join(preprocess_text(token)) for token in query_tokens)  # Preprocess original query terms
 
     
-
+    check=True
     # Manual synonyms from the provided file
     for term in query_tokens:
         if term in synonyms:
+            check=False
             expanded_query_terms.extend(' '.join(preprocess_text(token)) for token in synonyms[term])  # Preprocess manual synonyms
 
+
+
     # NLTK WordNet synonyms
-    for term in query_tokens:
-        synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
-        expanded_query_terms.extend(' '.join(preprocess_text(token)) for token in synonyms_wordnet)  # Preprocess synonyms
+    if check:
+        for term in query_tokens:
+            synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
+            expanded_query_terms.extend(' '.join(preprocess_text(token)) for token in synonyms_wordnet)  # Preprocess synonyms
+    
         
         
     return ' '.join(expanded_query_terms)
 
-def get_wordnet_synonyms(term, max_synonyms=2):
+def get_wordnet_synonyms(term, max_synonyms=1):
     synonyms_wordnet = []
     count = 0
     for synset in wordnet.synsets(term):
