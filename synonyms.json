@@ -8,7 +8,7 @@
         "cs": ["counter strike"],
         "csgo": ["counter strike global offensive"],
         "rl": ["rocket league"],
-        "rs": ["rainbow six"],
-        "rss": ["rainbow six siege"]
+        "r6": ["rainbow six"],
+        "r6s": ["rainbow six siege"]
     }
 }
