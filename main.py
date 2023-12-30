@@ -28,5 +28,5 @@ save_inverted_index(inverted_index)
 
 
 app = InformationRetrievalApp(tk.Tk(), inverted_index, user_history, main_data, desc_data, image_data)
-app.master.geometry("800x600")
+app.master.geometry("1024x768")
 app.master.mainloop()

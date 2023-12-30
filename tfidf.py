@@ -36,8 +36,10 @@ def ranked_retrieval_tfidf(queries, inverted_index):
         for term, tfidf_query_term in tfidf_query.items():
             if term in inverted_index:
                 for doc_id, tfidf_doc_term in inverted_index[term]['tfidf'].items():
-                    doc_vector = np.array([inverted_index[term]['tfidf'].get(doc_id, 0) for term in tfidf_query.keys()])
-                    
+                    doc_vector = np.array(
+                        [inverted_index[term]['tfidf'].get(doc_id, 0) * (position + 1) for position, term in
+                        enumerate(tfidf_query.keys())])
+
                     if doc_vector.shape[0] == 0:
                         print("Empty document vector. Skipping document:", doc_id)
                         continue
@@ -45,7 +47,9 @@ def ranked_retrieval_tfidf(queries, inverted_index):
                     scores[doc_id] += tfidf_query_term * tfidf_doc_term
 
         scores = dict(scores)
-        doc_vectors = np.array([[inverted_index[term]['tfidf'].get(doc_id, 0) for term in tfidf_query.keys()] for doc_id in scores.keys()])
+        doc_vectors = np.array(
+            [[inverted_index[term]['tfidf'].get(doc_id, 0) * (position + 1) for position, term in
+            enumerate(tfidf_query.keys())] for doc_id in scores.keys()])
 
         if doc_vectors.shape[0] == 0:
             print("Empty document vectors. No documents to compare.")

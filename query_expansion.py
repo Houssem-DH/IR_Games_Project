@@ -1,5 +1,4 @@
 import json
-import nltk
 from nltk.corpus import wordnet
 from preprocess import preprocess_text
 import spacy
@@ -44,26 +43,30 @@ def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', 
         print("Synonyms file not found.")
         return ' '.join(query_tokens)
 
-    expanded_query_terms = list(' '.join(preprocess_text(token)) for token in query_tokens)  # Preprocess original query terms
+    expanded_query_terms = []
 
-    
+    # Add original query terms
+    expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in query_tokens)
     check=True
     # Manual synonyms from the provided file
     for term in query_tokens:
         if term in synonyms:
-            check=False
-            expanded_query_terms.extend(' '.join(preprocess_text(token)) for token in synonyms[term])  # Preprocess manual synonyms
-
-
+            expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms[term])
+        check=False
 
     # NLTK WordNet synonyms
+    for term in query_tokens:
+        synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
+        expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms_wordnet)
+        check=False
+        
+        
     if check:
-        for term in query_tokens:
-            synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
-            expanded_query_terms.extend(' '.join(preprocess_text(token)) for token in synonyms_wordnet)  # Preprocess synonyms
+        expanded_query = expand_query_based_on_spacy(expanded_query_terms)
+        return ' '.join(expanded_query)
     
-        
-        
+    
+
     return ' '.join(expanded_query_terms)
 
 def get_wordnet_synonyms(term, max_synonyms=1):
