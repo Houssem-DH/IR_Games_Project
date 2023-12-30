@@ -4,7 +4,7 @@ import os
 import tkinter as tk
 from inverted_index import build_inverted_index_tfidf, save_inverted_index
 from preprocess import preprocess_text
-from user_history import load_user_history
+from user_history import load_user_history 
 from gui import InformationRetrievalApp
 
 
@@ -22,6 +22,8 @@ for column in data.columns:
 data.to_json('preprocessed_data_all_columns.json', orient='records', lines=True)
 
 user_history = load_user_history()
+
+print(user_history)
 
 inverted_index = build_inverted_index_tfidf(data)
 save_inverted_index(inverted_index)

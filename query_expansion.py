@@ -52,17 +52,19 @@ def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', 
     for term in query_tokens:
         if term in synonyms:
             expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms[term])
-        check=False
+            check=False
 
+        
     # NLTK WordNet synonyms
     for term in query_tokens:
         synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
         expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms_wordnet)
-        check=False
         
         
     if check:
-        expanded_query = expand_query_based_on_spacy(expanded_query_terms)
+        # Convert the list to a string
+        expanded_query_terms_string = ' '.join(expanded_query_terms)
+        expanded_query = expand_query_based_on_spacy(expanded_query_terms_string)
         return ' '.join(expanded_query)
     
     
@@ -99,3 +101,23 @@ def expand_query_based_on_translation(query_text, target_language='en'):
     else:
         # If the query is already in English, return the original query
         return query_text
+    
+    
+def remove_repetitions(sentence):
+    # Tokenize the sentence into words
+    words = sentence.split()
+
+    # Create a set of unique words to remove repetitions
+    unique_words = set()
+
+    # Reconstruct the sentence with only one occurrence of each unique word
+    unique_sentence = []
+    for word in words:
+        # Convert the word to lowercase for case-insensitive comparison
+        lower_word = word.lower()
+        
+        if lower_word not in unique_words:
+            unique_sentence.append(word)
+            unique_words.add(lower_word)
+
+    return ' '.join(unique_sentence)

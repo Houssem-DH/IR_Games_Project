@@ -4,13 +4,12 @@ from PIL import Image, ImageTk
 from tkhtmlview import HTMLLabel
 from user_geo import get_user_geo
 from tfidf import calculate_tfidf_for_queries, ranked_retrieval_tfidf
-from query_expansion import  expand_query_based_on_synonyms, expand_query_based_on_translation
+from query_expansion import expand_query_based_on_synonyms, expand_query_based_on_translation,remove_repetitions
 from preprocess import preprocess_text
 from user_history import save_user_history
 import requests
 from io import BytesIO
 import webbrowser
-
 
 
 class GameCard(ttk.Frame):
@@ -34,11 +33,13 @@ class GameCard(ttk.Frame):
         image_label.grid(row=0, column=0, rowspan=4, padx=10, pady=10, sticky='w')
 
         # Title
-        title_label = ttk.Label(self, text=self.game_info.get('name', 'Unknown Title'), font=('Helvetica', 14, 'bold'), style="GameCard.TLabel")
+        title_label = ttk.Label(self, text=self.game_info.get('name', 'Unknown Title'), font=('Helvetica', 14, 'bold'),
+                                style="GameCard.TLabel")
         title_label.grid(row=0, column=1, columnspan=2, pady=5, sticky='w')
 
         # Small Description
-        desc_label = HTMLLabel(self, html=self.game_info.get('short_description', 'No description available'), wraplength=400, style="GameCard.TLabel")
+        desc_label = HTMLLabel(self, html=self.game_info.get('short_description', 'No description available'),
+                               wraplength=400, style="GameCard.TLabel")
         desc_label.grid(row=1, column=1, columnspan=2, pady=5, sticky='w')
 
         # Price
@@ -73,13 +74,13 @@ class GameCard(ttk.Frame):
                 self.open_steam_callback(app_id)
 
 
-
 class GameCatalog(tk.Frame):
-    def __init__(self, master, results, game_data, image_data, **kwargs):
+    def __init__(self, master, results, game_data, image_data, user_history, **kwargs):
         super().__init__(master, **kwargs)
         self.results = results
         self.game_data = game_data
         self.image_data = image_data
+        self.user_history = user_history
 
         # Create a scrollable canvas
         canvas = tk.Canvas(self)
@@ -109,6 +110,7 @@ class GameCatalog(tk.Frame):
 
 
 class InformationRetrievalApp:
+    query_text = ""
     def __init__(self, master, inverted_index, user_history, main_data, game_data, image_data):
         self.master = master
         self.master.title("Information Retrieval System")
@@ -132,11 +134,11 @@ class InformationRetrievalApp:
         style.configure("Dark.TLabel", background=text_bg_color, foreground=fg_color)
         style.configure("TScrollbar", troughcolor=scrollbar_color, background=scrollbar_color, bordercolor=bg_color)
 
-        
         style.configure("GameCard.TFrame", background="#000000", borderwidth=4, relief="solid")
         style.configure("GameCard.TLabel", background="#f0f0f0", foreground="black")
         style.configure("GameCard.TButton", padding=6, relief="flat", background="#7289da", foreground="white")
         style.map("GameCard.TButton", background=[("active", "#677bc4")])
+
         # Entry and Button
         self.query_entry = ttk.Entry(self.master, width=50, style="TEntry")
         self.query_button = ttk.Button(self.master, text="Submit Query", command=self.handle_query, style="TButton")
@@ -190,26 +192,43 @@ class InformationRetrievalApp:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def handle_query(self):
-        query_text = self.query_entry.get()
-        if query_text:
+        # Use self.query_text instead of query_text
+        self.query_text = self.query_entry.get()
+        if self.query_text:
             user_ip, user_country = get_user_geo()
             print(f"User IP: {user_ip}, User Country: {user_country}")
+            
+            gamename=''
+            # Retrieve the last app_id for the current query from user_history
+            last_app_ids = self.user_history.get(self.query_text, [])
+            if last_app_ids:
+                last_app_id = last_app_ids[-1]
+                if 'appid' in self.main_data.columns:
+                    game_name = self.main_data.loc[self.main_data['appid'] == last_app_id].iloc[0]
+                    gamename = game_name['name']
 
-            expanded_query_synonyms = expand_query_based_on_synonyms(preprocess_text(query_text, True, True))
+
+            expanded_query_synonyms = expand_query_based_on_synonyms(preprocess_text(self.query_text, False, False))
             expanded_query_translation = expand_query_based_on_translation(expanded_query_synonyms)
 
-            expanded_query = f"{expanded_query_translation}"
 
-            tfidf_queries = calculate_tfidf_for_queries([(1, expanded_query)], self.inverted_index)
+            expanded_query = f"{expanded_query_translation} {gamename}"
+
+            last_expanded_query=remove_repetitions(expanded_query)
+
+            tfidf_queries = calculate_tfidf_for_queries([(1, last_expanded_query)], self.inverted_index)
             tfidf_query = tfidf_queries[1]
 
             results = ranked_retrieval_tfidf([(1, tfidf_query)], self.inverted_index)
 
-            print(f"Query: {query_text}")
-            print(f"Expanded Query: {expanded_query}")
+            print(f"Query: {self.query_text}")
+            print(f"Expanded Query: {last_expanded_query}")
             print(f"Results: {results}")
+            
+            
 
-            self.display_game_info(results[:5])  # Display only top 5 results
+            self.display_game_info(results)  # Display only top 5 results
+
 
     def display_game_info(self, results):
         for widget in self.result_frame.winfo_children():
@@ -218,7 +237,7 @@ class InformationRetrievalApp:
         if not results:
             return
 
-        top_results = results[:5]  # Display only the top 5 results
+        top_results = results[:10]  # Display only the top 10 results
 
         for result in top_results:
             app_id = result[1]
@@ -303,7 +322,16 @@ class InformationRetrievalApp:
         # Update the canvas scroll region after changing the content
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         
+
+
+
+
     def open_steam_store(self, app_id):
         # Implement the functionality to open the Steam Store for the selected game
+        if self.query_text:
+            save_user_history(self.user_history, self.query_text, app_id)
+            
         steam_store_url = f"https://store.steampowered.com/app/{app_id}/"
-        webbrowser.open(steam_store_url)   
+        webbrowser.open(steam_store_url)
+
+
