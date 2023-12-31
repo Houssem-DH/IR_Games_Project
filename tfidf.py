@@ -9,22 +9,25 @@ def calculate_tfidf_for_queries(queries, inverted_index):
     for query_number, query_text in queries:
         tokens = preprocess_text(query_text, True, True)
         tfidf_query = defaultdict(lambda: 0)
-        name_weight= 10.0
+        
         for term in tokens:
             if term in inverted_index:
                 tf = tokens.count(term) / len(tokens)
                 idf = math.log(len(inverted_index) / inverted_index[term]['document_frequency'] + 1)
-                # Adjust the TF-IDF score for the 'name' column
-                if 'name_tokens' in inverted_index[term]['tfidf']:
-                    tfidf_query[term] = tf * idf * name_weight
-                else:
-                    tfidf_query[term] = tf * idf
+                tfidf_query[term] = tf * idf
                 
         tfidf_queries[query_number] = tfidf_query
     return tfidf_queries
 
-def ranked_retrieval_tfidf(queries, inverted_index):
+def ranked_retrieval_tfidf(queries, inverted_index, filter_age):
+    if filter_age:
+        with open('appids_with_age_18.txt', 'r') as file:
+            appids_with_age_18 = {int(line.strip()) for line in file}
+    else:
+        appids_with_age_18 = set()
+
     results = []
+
     for query_number, tfidf_query in queries:
         query_vector = np.array([tfidf_query[term] for term in tfidf_query.keys()])
         scores = defaultdict(lambda: 0)
@@ -58,6 +61,12 @@ def ranked_retrieval_tfidf(queries, inverted_index):
         cosine_similarities = cosine_similarity([query_vector], doc_vectors)[0]
 
         sorted_results = sorted(zip(scores.keys(), cosine_similarities), key=lambda x: x[1], reverse=True)
-        results.extend([(query_number, doc_id, score) for doc_id, score in sorted_results])
+
+        if filter_age:
+            # Filter out games with age 18
+            filtered_results = [(query_number, doc_id, score) for doc_id, score in sorted_results if doc_id not in appids_with_age_18]
+            results.extend(filtered_results)
+        else:
+            results.extend([(query_number, doc_id, score) for doc_id, score in sorted_results])
 
     return results

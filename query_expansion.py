@@ -10,16 +10,14 @@ import langid
 # Load spaCy model
 nlp = spacy.load("en_core_web_sm")
 
-def expand_query_based_on_spacy(query_text):
-    tokens = [token.text for token in nlp(query_text.lower())]
-
-    expanded_terms = set(tokens)
-    for token in tokens:
+def expand_query_based_on_spacy(query_tokens):
+    expanded_terms = set(query_tokens)
+    for token in query_tokens:
         similar_words = [word.text for word in nlp.vocab if word.has_vector and nlp(token).similarity(nlp(word.text)) > 0.5]
         expanded_terms.update(similar_words)
 
-    expanded_query = ' '.join(expanded_terms)
-    return expanded_query
+    return expanded_terms
+
 
 
 def expand_query_based_on_country(tfidf_query, user_country):
@@ -34,7 +32,7 @@ def expand_query_based_on_country(tfidf_query, user_country):
     return tfidf_query
 
 
-def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', max_synonyms=2):
+def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', max_synonyms=1):
     try:
         with open(synonyms_file, 'r') as f:
             synonyms_data = json.load(f)
@@ -43,33 +41,28 @@ def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', 
         print("Synonyms file not found.")
         return ' '.join(query_tokens)
 
-    expanded_query_terms = []
+    expanded_query_terms = set(query_tokens)
+    check = True
 
-    # Add original query terms
-    expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in query_tokens)
-    check=True
     # Manual synonyms from the provided file
     for term in query_tokens:
         if term in synonyms:
-            expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms[term])
-            check=False
+            expanded_query_terms.update(synonyms[term])
+            check = False
 
-        
     # NLTK WordNet synonyms
     for term in query_tokens:
         synonyms_wordnet = get_wordnet_synonyms(term, max_synonyms)
-        expanded_query_terms.extend(' '.join(preprocess_text(token, False, False)) for token in synonyms_wordnet)
-        
-        
+        expanded_query_terms.update(synonyms_wordnet)
+
     if check:
-        # Convert the list to a string
-        expanded_query_terms_string = ' '.join(expanded_query_terms)
-        expanded_query = expand_query_based_on_spacy(expanded_query_terms_string)
+        # Convert the set to a list for consistent order
+        expanded_query_terms_list = list(expanded_query_terms)
+        expanded_query = expand_query_based_on_spacy(expanded_query_terms_list)
         return ' '.join(expanded_query)
-    
-    
 
     return ' '.join(expanded_query_terms)
+
 
 def get_wordnet_synonyms(term, max_synonyms=1):
     synonyms_wordnet = []

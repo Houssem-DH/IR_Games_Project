@@ -12,6 +12,42 @@ from io import BytesIO
 import webbrowser
 
 
+
+class AgeVerificationPopup:
+    def __init__(self, master):
+        self.master = master
+        self.result = None
+
+        self.age_dialog = tk.Toplevel(self.master)
+        self.age_dialog.title("Age Verification")
+
+        age_label = ttk.Label(self.age_dialog, text="Are you 18 years or older?")
+        age_label.pack(pady=10)
+
+        # Function to handle the "Yes" button click
+        def yes_callback():
+            self.result = False
+            self.age_dialog.destroy()  # Close the age verification dialog
+
+        # Function to handle the "No" button click
+        def no_callback():
+            self.result = True
+            self.age_dialog.destroy()  # Close the age verification dialog
+
+        # Create "Yes" and "No" buttons
+        yes_button = ttk.Button(self.age_dialog, text="Yes", command=yes_callback)
+        yes_button.pack(side="left", padx=10)
+
+        no_button = ttk.Button(self.age_dialog, text="No", command=no_callback)
+        no_button.pack(side="right", padx=10)
+
+        self.age_dialog.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def on_close(self):
+        # Handle the window close event
+        self.result = False
+        self.age_dialog.destroy()
+
 class GameCard(ttk.Frame):
     def __init__(self, master, game_info, image_url, open_steam_callback, **kwargs):
         super().__init__(master, **kwargs)
@@ -115,6 +151,12 @@ class InformationRetrievalApp:
         self.master = master
         self.master.title("Information Retrieval System")
 
+
+        # Age verification popup
+        self.age_verification = AgeVerificationPopup(self.master)
+
+        
+        
         # Configure style
         style = ttk.Style()
         style.theme_use("clam")  # Choose a different theme for a modern look
@@ -146,6 +188,8 @@ class InformationRetrievalApp:
         # Pack Entry and Button
         self.query_entry.pack(pady=10, padx=10)
         self.query_button.pack(pady=10)
+        
+        
 
         # Create a canvas with vertical scrollbar
         self.canvas = tk.Canvas(self.master, bg=bg_color, highlightthickness=0)
@@ -219,15 +263,15 @@ class InformationRetrievalApp:
             tfidf_queries = calculate_tfidf_for_queries([(1, last_expanded_query)], self.inverted_index)
             tfidf_query = tfidf_queries[1]
 
-            results = ranked_retrieval_tfidf([(1, tfidf_query)], self.inverted_index)
+            results = ranked_retrieval_tfidf([(1, tfidf_query)], self.inverted_index,filter_age=self.age_verification.result)
 
             print(f"Query: {self.query_text}")
             print(f"Expanded Query: {last_expanded_query}")
-            print(f"Results: {results}")
+            print(f"{results}")
             
             
 
-            self.display_game_info(results)  # Display only top 5 results
+            self.display_game_info(results)  
 
 
     def display_game_info(self, results):

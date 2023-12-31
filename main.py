@@ -29,6 +29,9 @@ inverted_index = build_inverted_index_tfidf(data)
 save_inverted_index(inverted_index)
 
 
+
+        
 app = InformationRetrievalApp(tk.Tk(), inverted_index, user_history, main_data, desc_data, image_data)
+
 app.master.geometry("1024x768")
 app.master.mainloop()
