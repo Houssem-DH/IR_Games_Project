@@ -143,7 +143,6 @@ def expand_query_based_on_country(query, user_country):
 
     # Get the dominant religion for the user's country
     dominant_religion = religion_dict.get(user_country, "").lower()
-    print(f"Religion: {dominant_religion}")
 
     # Get terms to remove and their replacements based on the user's religion
     terms_to_remove = terms_to_remove_data.get(dominant_religion, {})

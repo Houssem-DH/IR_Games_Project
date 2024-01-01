@@ -1,5 +1,5 @@
 #data 
-data/csv/*
+data/csv/*.csv
 
 .vscode/*
 __pycache__/
