@@ -1,10 +1,8 @@
 #data 
 data/csv/*.csv
-
+data/json/user_history.json
+data/json/preprocessed_data_all_columns.json
 .vscode/*
 __pycache__/
 __pycache__/*
-user_history.json
-inverted_index.json
-preprocessed_data_all_columns.json
-tfidf_results.txt
+

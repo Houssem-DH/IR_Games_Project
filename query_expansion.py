@@ -93,7 +93,7 @@ def expand_query_based_on_translation(query_text, target_language='en'):
     if not is_english(query_text):
         translator = Translator()
         translation = translator.translate(query_text, dest=target_language)
-        expanded_query_translation = translation.text
+        expanded_query_translation = f"{query_text} {translation.text}"
         return expanded_query_translation
     else:
         # If the query is already in English, return the original query

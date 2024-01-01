@@ -1,0 +1,12 @@
+pandas
+tk
+nltk
+spacy
+googletrans==4.0.0-rc1
+scikit-learn
+numpy
+requests
+
+# Additional NLTK downloads
+nltk==3.6.5
+
