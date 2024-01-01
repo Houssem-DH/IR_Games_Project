@@ -2,7 +2,7 @@ import json
 
 # user_history.py
 
-def load_user_history(filename='user_history.json'):
+def load_user_history(filename='data/json/user_history.json'):
     try:
         with open(filename, 'r') as f:
             user_history = json.load(f)
@@ -18,7 +18,7 @@ def load_user_history(filename='user_history.json'):
 
 # user_history.py
 
-def save_user_history(user_history, query_text, app_id, filename='user_history.json'):
+def save_user_history(user_history, query_text, app_id, filename='data/json/user_history.json'):
     # Ensure that the key exists before accessing its value
     if query_text not in user_history:
         user_history[query_text] = []

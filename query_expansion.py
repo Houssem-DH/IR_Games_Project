@@ -1,9 +1,9 @@
 import json
 from nltk.corpus import wordnet
-from preprocess import preprocess_text
 import spacy
 from googletrans import Translator
 import langid
+
 
 
 
@@ -20,19 +20,10 @@ def expand_query_based_on_spacy(query_tokens):
 
 
 
-def expand_query_based_on_country(tfidf_query, user_country):
-    # Implement your logic to determine expanded query terms based on the user's country
-    # This could involve looking up a predefined set of terms for each country or using a machine learning model
-    expanded_query_terms = {'grand': 0.5, 'theft': 0.3}
-
-    # Update the original query with the expanded terms
-    for term, weight in expanded_query_terms.items():
-        tfidf_query[term] = weight
-
-    return tfidf_query
 
 
-def expand_query_based_on_synonyms(query_tokens, synonyms_file='synonyms.json', max_synonyms=1):
+
+def expand_query_based_on_synonyms(query_tokens, synonyms_file='data/json/synonyms.json', max_synonyms=1):
     try:
         with open(synonyms_file, 'r') as f:
             synonyms_data = json.load(f)
@@ -114,3 +105,32 @@ def remove_repetitions(sentence):
             unique_words.add(lower_word)
 
     return ' '.join(unique_sentence)
+
+
+
+
+
+
+def expand_query_based_on_country(query, user_country):
+    query=query.lower()
+    # Load religion data
+    with open('data/json/relegion.json', 'r') as f:
+        religion_dict = json.load(f)
+
+    # Load terms to remove and their replacements
+    with open('data/json/terms_to_remove.json', 'r') as f:
+        terms_to_remove_data = json.load(f)
+
+    # Get the dominant religion for the user's country
+    dominant_religion = religion_dict.get(user_country, "").lower()
+    print(f"Religion: {dominant_religion}")
+
+    # Get terms to remove and their replacements based on the user's religion
+    terms_to_remove = terms_to_remove_data.get(dominant_religion, {})
+    
+    # Remove terms from the query based on the user's religion
+    for term, replacements in terms_to_remove.items():
+        query = query.replace(term, replacements[0])  # Replace with the first replacement term
+
+    return query
+

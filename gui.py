@@ -2,15 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from tkhtmlview import HTMLLabel
-from user_geo import get_user_geo
 from tfidf import calculate_tfidf_for_queries, ranked_retrieval_tfidf
-from query_expansion import expand_query_based_on_synonyms, expand_query_based_on_translation,remove_repetitions
+from query_expansion import expand_query_based_on_synonyms, expand_query_based_on_translation,remove_repetitions,expand_query_based_on_country
 from preprocess import preprocess_text
 from user_history import save_user_history
 import requests
 from io import BytesIO
 import webbrowser
-
+import sv_ttk
 
 
 class AgeVerificationPopup:
@@ -18,8 +17,24 @@ class AgeVerificationPopup:
         self.master = master
         self.result = None
 
+        # Age verification window
         self.age_dialog = tk.Toplevel(self.master)
         self.age_dialog.title("Age Verification")
+
+        # Set the main window as a transient window
+        self.age_dialog.transient(self.master)
+        self.age_dialog.grab_set()  # Set grab on the age verification window
+
+        # Get the screen width and height
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+
+        # Calculate the x and y coordinates to center the popup
+        x = (screen_width - 300) // 2  # Adjust the width as needed
+        y = (screen_height - 200) // 3 + 50  # Adjust the height and top padding as needed
+
+        # Set the popup window size and position
+        self.age_dialog.geometry(f"300x200+{x}+{y}")
 
         age_label = ttk.Label(self.age_dialog, text="Are you 18 years or older?")
         age_label.pack(pady=10)
@@ -35,10 +50,10 @@ class AgeVerificationPopup:
             self.age_dialog.destroy()  # Close the age verification dialog
 
         # Create "Yes" and "No" buttons
-        yes_button = ttk.Button(self.age_dialog, text="Yes", command=yes_callback)
+        yes_button = ttk.Button(self.age_dialog, text="Yes", command=yes_callback, cursor="hand2")
         yes_button.pack(side="left", padx=10)
 
-        no_button = ttk.Button(self.age_dialog, text="No", command=no_callback)
+        no_button = ttk.Button(self.age_dialog, text="No", command=no_callback, cursor="hand2")
         no_button.pack(side="right", padx=10)
 
         self.age_dialog.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -47,6 +62,9 @@ class AgeVerificationPopup:
         # Handle the window close event
         self.result = False
         self.age_dialog.destroy()
+
+
+
 
 class GameCard(ttk.Frame):
     def __init__(self, master, game_info, image_url, open_steam_callback, **kwargs):
@@ -147,48 +165,65 @@ class GameCatalog(tk.Frame):
 
 class InformationRetrievalApp:
     query_text = ""
-    def __init__(self, master, inverted_index, user_history, main_data, game_data, image_data):
+    def __init__(self, master, inverted_index, user_history, main_data, game_data, image_data,user_country):
         self.master = master
-        self.master.title("Information Retrieval System")
+        self.master.title("Steamify")
+        
+        # Set the icon for the main window
+        icon_path = 'data/icon.ico'  # Replace this with the path to your icon file
+        self.master.iconbitmap(icon_path)
 
-
-        # Age verification popup
-        self.age_verification = AgeVerificationPopup(self.master)
 
         
+        # Set the background color of the top-level window to black
+        self.master.configure(bg="#171a21")
+        
+        
+       
+        
+
+        # This is where the magic happens
+        sv_ttk.set_theme("dark")
         
         # Configure style
         style = ttk.Style()
+        
         style.theme_use("clam")  # Choose a different theme for a modern look
 
         # Configure colors
         bg_color = "#171a21"
         fg_color = "white"
         text_bg_color = "#171a21"
-        entry_bg_color = "#40444b"
-        scrollbar_color = "#001C4D"
-        active_bg_color = "#7289da"
+        entry_bg_color = "#101318"
+        scrollbar_color = "#242424"
+        active_bg_color = "#223147"
+        
+        
 
-        style.configure("TButton", padding=6, relief="flat", background=active_bg_color, foreground=fg_color)
-        style.map("TButton", background=[("active", "#677bc4")])
-        style.configure("TEntry", padding=6, fieldbackground=entry_bg_color, foreground=fg_color)
+        style.configure("TButton",  padding=6, relief="flat", background=active_bg_color, foreground=fg_color,  borderwidth=0, borderradius=5)
+        style.map("TButton", background=[("active", "#38485D")])
+        style.configure("TEntry", padding=6,fieldbackground=entry_bg_color, foreground=fg_color)
         style.configure("TFrame", background=bg_color)
         style.configure("Dark.TLabel", background=text_bg_color, foreground=fg_color)
-        style.configure("TScrollbar", troughcolor=scrollbar_color, background=scrollbar_color, bordercolor=bg_color)
+        style.configure("TScrollbar", troughcolor=scrollbar_color, background=bg_color, bordercolor=bg_color)
 
         style.configure("GameCard.TFrame", background="#000000", borderwidth=4, relief="solid")
         style.configure("GameCard.TLabel", background="#f0f0f0", foreground="black")
-        style.configure("GameCard.TButton", padding=6, relief="flat", background="#7289da", foreground="white")
-        style.map("GameCard.TButton", background=[("active", "#677bc4")])
+        style.configure("GameCard.TButton", padding=6, relief="flat", background=active_bg_color, foreground="white")
+        style.map("GameCard.TButton", background=[("active", "#38485D")])
 
+ 
         # Entry and Button
-        self.query_entry = ttk.Entry(self.master, width=50, style="TEntry")
-        self.query_button = ttk.Button(self.master, text="Submit Query", command=self.handle_query, style="TButton")
+        self.query_entry = ttk.Entry(self.master, width=40, style="TEntry", font=('Helvetica', 10))
+        self.add_placeholder()  # Initial placeholder setup
+        self.query_entry.bind("<FocusIn>", self.remove_placeholder)
+        self.query_entry.bind("<FocusOut>", self.add_placeholder)
 
-        # Pack Entry and Button
-        self.query_entry.pack(pady=10, padx=10)
-        self.query_button.pack(pady=10)
-        
+        self.query_button = ttk.Button(self.master, text="Submit Query", command=self.handle_query, style="TButton", cursor="hand2")
+
+        # Pack Entry and Button in the first row
+        self.query_entry.pack(pady=(32, 15), padx=10)
+        self.query_button.pack(pady=(10, 32), padx=10)
         
 
         # Create a canvas with vertical scrollbar
@@ -198,49 +233,87 @@ class InformationRetrievalApp:
         # Create a frame to hold the content
         self.result_frame = ttk.Frame(self.canvas, style="TFrame")
         self.canvas.create_window((0, 0), window=self.result_frame, anchor="nw")
-
-        # Create a vertical scrollbar and associate it with the canvas
+        
+        
+        # Create a vertical scrollbar without command initially
         self.scrollbar = ttk.Scrollbar(self.master, orient="vertical", command=self.canvas.yview, style="TScrollbar")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        # Pack the scrollbar to the right of the canvas
+        
+        
+        
         self.scrollbar.pack(side="right", fill="y")
+        
+
 
         # Bind the on_canvas_configure method to the Configure event of the canvas
         self.canvas.bind("<Configure>", self.on_canvas_configure)
+        # Make the canvas scrollable with the mouse wheel
+        self.canvas.bind_all("<MouseWheel>", lambda event: self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
+        
 
-        # Center the content vertically and horizontally
-        self.master.update_idletasks()
-        width = self.master.winfo_width()
-        height = self.master.winfo_height()
+        
+        
+        
 
-        x = (self.master.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.master.winfo_screenheight() // 2) - (height // 2)
+        # Center the main window on the screen
+        self.master.update_idletasks()  # Ensure window is fully initialized
+        width = 1024
+        height = 768
 
-        self.master.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+
+        self.master.geometry(f'{width}x{height}+{x}+{y}')
+        
+        
 
         self.inverted_index = inverted_index
         self.user_history = user_history
         self.main_data = main_data
         self.game_data = game_data
         self.image_data = image_data
+        self.user_country=user_country
+        
+        # Example usage in InformationRetrievalApp
+        self.age_verification = AgeVerificationPopup(self.master)
+
+        
+        
+        
+        
+    
+    def add_placeholder(self, event=None):
+        # Add a placeholder when the entry is empty and doesn't have focus
+        if not self.query_entry.get() and (event is None or event.widget != self.query_entry):
+            self.query_entry.insert(0, "Enter your search query...")
+            self.query_entry.config(foreground="grey")
+
+    def remove_placeholder(self, event):
+        # Remove the placeholder when the entry has focus
+        if self.query_entry.get() == "Enter your search query...":
+            self.query_entry.delete(0, "end")
+            self.query_entry.config(foreground="white")
 
     def on_canvas_configure(self, event):
         width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
+        
 
         x = (width - self.result_frame.winfo_reqwidth()) // 2
-        y = (height - self.result_frame.winfo_reqheight()) // 2
+        y = 0
 
         self.canvas.create_window(x, y, anchor="nw", window=self.result_frame)
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            # Set the scrollregion based on the bounding box of the content
+        bbox = self.canvas.bbox("all")
+        self.canvas.configure(scrollregion=bbox)
 
     def handle_query(self):
         # Use self.query_text instead of query_text
         self.query_text = self.query_entry.get()
         if self.query_text:
-            user_ip, user_country = get_user_geo()
-            print(f"User IP: {user_ip}, User Country: {user_country}")
+            
+            
             
             gamename=''
             # Retrieve the last app_id for the current query from user_history
@@ -254,11 +327,16 @@ class InformationRetrievalApp:
 
             expanded_query_synonyms = expand_query_based_on_synonyms(preprocess_text(self.query_text, False, False))
             expanded_query_translation = expand_query_based_on_translation(expanded_query_synonyms)
+            
+            expanded_query  = f"{expanded_query_translation} {gamename}"
+            expanded_query_country= expand_query_based_on_country(expanded_query,self.user_country)
+            
+            
+            
+            last_expanded_query=remove_repetitions(expanded_query_country)
 
+            
 
-            expanded_query = f"{expanded_query_translation} {gamename}"
-
-            last_expanded_query=remove_repetitions(expanded_query)
 
             tfidf_queries = calculate_tfidf_for_queries([(1, last_expanded_query)], self.inverted_index)
             tfidf_query = tfidf_queries[1]
@@ -266,12 +344,15 @@ class InformationRetrievalApp:
             results = ranked_retrieval_tfidf([(1, tfidf_query)], self.inverted_index,filter_age=self.age_verification.result)
 
             print(f"Query: {self.query_text}")
-            print(f"Expanded Query: {last_expanded_query}")
-            print(f"{results}")
+            print(f"Expanded Query 1: {expanded_query_country}")
+            print(f"Expanded Query 2: {last_expanded_query}")
+            # print(f"{results}")
             
             
 
             self.display_game_info(results)  
+            
+
 
 
     def display_game_info(self, results):
@@ -334,7 +415,20 @@ class InformationRetrievalApp:
                     image_label.pack(side="left", padx=10)
 
                 except Exception as e:
-                    print(f"Error loading image from URL: {e}")
+                    # Read the local image
+                    image = Image.open('data/image-not-found.png')
+
+                    # Adjust thumbnail size to fit the card
+                    thumbnail_size = (500, 350)
+                    image.thumbnail(thumbnail_size)
+
+                    # Convert the image to a Tkinter-compatible format
+                    photo = ImageTk.PhotoImage(image)
+
+                    # Create a label to display the image
+                    image_label = ttk.Label(card_frame, image=photo)
+                    image_label.photo = photo  # Keep a reference to the photo to prevent it from being garbage collected
+                    image_label.pack(side="left", padx=10)
 
             # Create a frame to hold text on the right side of the card
             text_frame = ttk.Frame(card_frame, style="TFrame")
@@ -357,14 +451,15 @@ class InformationRetrievalApp:
             ttk.Separator(self.result_frame, orient="horizontal").pack(fill="x", pady=10)
             
             # Display the "Open Steam Store" button
-            open_store_button = ttk.Button(text_frame, text="Open Steam Store", command=lambda app_id=app_id: self.open_steam_store(app_id), style="GameCard.TButton")
-            open_store_button.pack(padx=0, pady=5, anchor="w")
+            open_store_button = ttk.Button(text_frame, text="Open Steam Store", command=lambda app_id=app_id: self.open_steam_store(app_id), style="GameCard.TButton",cursor="hand2")
+            open_store_button.pack(padx=0, pady=(5,10), anchor="w")
 
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
         # Update the canvas size based on the content
         self.canvas.update_idletasks()
 
-        # Update the canvas scroll region after changing the content
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        # Call on_canvas_configure to ensure proper centering
+        self.on_canvas_configure(None)
         
 
 

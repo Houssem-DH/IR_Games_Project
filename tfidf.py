@@ -21,7 +21,7 @@ def calculate_tfidf_for_queries(queries, inverted_index):
 
 def ranked_retrieval_tfidf(queries, inverted_index, filter_age):
     if filter_age:
-        with open('appids_with_age_18.txt', 'r') as file:
+        with open('data/txt/appids_with_age_18.txt', 'r') as file:
             appids_with_age_18 = {int(line.strip()) for line in file}
     else:
         appids_with_age_18 = set()
