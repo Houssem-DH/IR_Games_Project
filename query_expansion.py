@@ -3,13 +3,6 @@ from nltk.corpus import wordnet
 import spacy
 from googletrans import Translator
 import langid
-import nltk
-
-
-
-
-nltk.download('wordnet')
-
 import os
 import sys
 
