@@ -4,6 +4,9 @@ import spacy
 from googletrans import Translator
 import langid
 
+import nltk
+nltk.download('wordnet')
+
 
 
 
