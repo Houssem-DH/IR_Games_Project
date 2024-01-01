@@ -4,6 +4,20 @@ from preprocess import preprocess_text
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+import os
+import sys
+
+# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 def calculate_tfidf_for_queries(queries, inverted_index):
     tfidf_queries = {}
     for query_number, query_text in queries:
@@ -21,7 +35,7 @@ def calculate_tfidf_for_queries(queries, inverted_index):
 
 def ranked_retrieval_tfidf(queries, inverted_index, filter_age):
     if filter_age:
-        with open('data/txt/appids_with_age_18.txt', 'r') as file:
+        with open(resource_path('data/txt/appids_with_age_18.txt'), 'r') as file:
             appids_with_age_18 = {int(line.strip()) for line in file}
     else:
         appids_with_age_18 = set()

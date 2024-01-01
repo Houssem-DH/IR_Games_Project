@@ -3,9 +3,26 @@ from nltk.corpus import wordnet
 import spacy
 from googletrans import Translator
 import langid
-
 import nltk
+
+
+
+
 nltk.download('wordnet')
+
+import os
+import sys
+
+# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 
@@ -26,7 +43,7 @@ def expand_query_based_on_spacy(query_tokens):
 
 
 
-def expand_query_based_on_synonyms(query_tokens, synonyms_file='data/json/synonyms.json', max_synonyms=1):
+def expand_query_based_on_synonyms(query_tokens, synonyms_file=resource_path('data/json/synonyms.json'), max_synonyms=2):
     try:
         with open(synonyms_file, 'r') as f:
             synonyms_data = json.load(f)
@@ -117,11 +134,11 @@ def remove_repetitions(sentence):
 def expand_query_based_on_country(query, user_country):
     query=query.lower()
     # Load religion data
-    with open('data/json/relegion.json', 'r') as f:
+    with open(resource_path('data/json/relegion.json'), 'r') as f:
         religion_dict = json.load(f)
 
     # Load terms to remove and their replacements
-    with open('data/json/terms_to_remove.json', 'r') as f:
+    with open(resource_path('data/json/terms_to_remove.json'), 'r') as f:
         terms_to_remove_data = json.load(f)
 
     # Get the dominant religion for the user's country

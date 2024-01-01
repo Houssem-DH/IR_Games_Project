@@ -10,7 +10,21 @@ import requests
 from io import BytesIO
 import webbrowser
 import sv_ttk
+import os
+import sys
 
+# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+        
+        
+
+    return os.path.join(base_path, relative_path)
 
 class AgeVerificationPopup:
     def __init__(self, master):
@@ -113,7 +127,7 @@ class GameCard(ttk.Frame):
         except Exception as e:
             print(f"Error loading image from URL: {e}")
             # Provide a default image if loading fails
-            default_image = Image.open('data/image-not-found.png')  # Replace 'default_image.png' with your default image file
+            default_image = Image.open(resource_path('data/image-not-found.png'))  # Replace 'default_image.png' with your default image file
             default_image.thumbnail((450, 400))
             return ImageTk.PhotoImage(default_image)
 
@@ -170,7 +184,7 @@ class InformationRetrievalApp:
         self.master.title("Steamify")
         
         # Set the icon for the main window
-        icon_path = 'data/icon.ico'  # Replace this with the path to your icon file
+        icon_path = resource_path('data/icon.ico') # Replace this with the path to your icon file
         self.master.iconbitmap(icon_path)
 
 
@@ -343,11 +357,6 @@ class InformationRetrievalApp:
 
             results = ranked_retrieval_tfidf([(1, tfidf_query)], self.inverted_index,filter_age=self.age_verification.result)
 
-            print(f"Query: {self.query_text}")
-            print(f"Expanded Query 1: {expanded_query_country}")
-            print(f"Expanded Query 2: {last_expanded_query}")
-            # print(f"{results}")
-            
             
 
             self.display_game_info(results)  
@@ -416,7 +425,7 @@ class InformationRetrievalApp:
 
                 except Exception as e:
                     # Read the local image
-                    image = Image.open('data/image-not-found.png')
+                    image = Image.open(resource_path('data/image-not-found.png'))
 
                     # Adjust thumbnail size to fit the card
                     thumbnail_size = (500, 350)

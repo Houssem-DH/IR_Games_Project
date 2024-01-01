@@ -1,9 +1,10 @@
 import pandas as pd
+
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-import nltk
 
+import nltk
 nltk.download('stopwords')
 
 
