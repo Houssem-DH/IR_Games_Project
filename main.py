@@ -31,6 +31,8 @@ def resource_path(relative_path):
 
 user_ip, user_country = get_user_geo()
 
+print(f"User IP: {user_ip}, User Country: {user_country}")
+
 # Load other data files
 main_data = pd.read_csv(resource_path('data/csv/steam.csv'))
 desc_data = pd.read_csv(resource_path('data/csv/steam_description_data.csv'))
