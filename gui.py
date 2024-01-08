@@ -349,7 +349,8 @@ class InformationRetrievalApp:
             
             last_expanded_query=remove_repetitions(expanded_query_country)
 
-            
+            print(f"Query: {self.query_text}")
+            print(f"Expanded Query: {last_expanded_query}")
 
 
             tfidf_queries = calculate_tfidf_for_queries([(1, last_expanded_query)], self.inverted_index)
