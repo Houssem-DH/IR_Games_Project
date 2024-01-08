@@ -25,5 +25,5 @@ Welcome to the data download and information retrieval section. Below, you'll fi
 5. Run the app using the following command:
 
    ```bash
-   pip install -r requirements.txt
+   python main.py
    ```
