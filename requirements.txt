@@ -7,6 +7,10 @@ scikit-learn
 numpy
 requests
 sv_ttk
+Pillow
+tkhtmlview
+langid
 # Additional NLTK downloads
 nltk==3.6.5
+
 

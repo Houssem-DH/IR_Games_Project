@@ -21,9 +21,14 @@ Welcome to the data download and information retrieval section. Below, you'll fi
    ```bash
    pip install -r requirements.txt
    ```
+   ```bash
+   python -m spacy download en_core_web_sm
+   ```
 
 5. Run the app using the following command:
 
    ```bash
    python main.py
    ```
+
+   
