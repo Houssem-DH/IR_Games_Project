@@ -5,6 +5,9 @@ from googletrans import Translator
 import langid
 import os
 import sys
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
 
 # https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
 def resource_path(relative_path):
